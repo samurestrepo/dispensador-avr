@@ -40,6 +40,7 @@ Además, desde INICIO: `C ─► CONSULTA_SALDO ─(3 s · * · 20 s)─► INIC
 | RECARGA_MONTO | `Monto recarga:` / `$5000` | 0–9 (máx. 6) · * borra un dígito (vacío → INICIO) · # (> 0 y múltiplo de 100) → RECARGA_TARJETA |
 | RECARGA_TARJETA | `Acerque tarjeta` / `Recarga $5000` | Saldo válido → saldo + monto · en blanco → `Tarjeta nueva`, saldo = monto · tope $999.900 · escribir, verificar → `Saldo $X` → INICIO · * o 20 s → INICIO |
 | CONSULTA_SALDO | `Acerque tarjeta` / `Consulta saldo` | Válida → `Saldo $X` (3 s) → INICIO · en blanco → `Saldo $0` (3 s) → INICIO · no válida → `Tarjeta no valida` (2 s) → INICIO · * o 20 s → INICIO. **Solo lectura (D16).** |
+| VERIFICAR_TARJETA | `Acerque de nuevo` / `la misma tarjeta` | Se llega desde PAGO_TARJETA o RECARGA_TARJETA cuando falla la escritura o la verificación (D8). Tarjeta con **otro UID** → `Otra tarjeta` (2 s) y sigue esperando · mismo UID: saldo = nuevo → (pago) `Saldo $X` → DISPENSAR / (recarga) `Saldo $X` → INICIO · saldo = original → `No se cobro` / `No se recargo` (2 s) → vuelve al estado de origen para reintentar · no válida → `Tarjeta no valida` → INICIO · * → `Op. no confirmada` (2 s) → INICIO. **Sin tiempo límite.** |
 
 ## Regla de las monedas (R7)
 ```
@@ -55,5 +56,16 @@ si saldo != ~comp:                  "Tarjeta no valida"
 si saldo < total:                   "Saldo insuficiente"   (rechazo, R8)
 nuevo = saldo − total
 escribir bloque 4 (nuevo, ~nuevo) → releer → ¿igual?
-   sí → DISPENSAR      no → "Error, reintente" (no se dispensa)
+   sí → DISPENSAR
+   no (o falló la escritura) → VERIFICAR_TARJETA   (guardar UID, original y nuevo)
+```
+
+## Verificación tras una escritura dudosa (D8)
+```
+pedir la misma tarjeta (comparar UID)
+leer saldo:
+  == nuevo     → la operación SÍ quedó: pago → DISPENSAR · recarga → confirmar
+  == original  → NO quedó: volver al estado de origen y reintentar (sin riesgo)
+  no válida    → "Tarjeta no valida" → INICIO
+* → "Op. no confirmada" → INICIO   (sin tiempo límite)
 ```
