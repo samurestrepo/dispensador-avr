@@ -13,20 +13,26 @@ if (-not (Get-Command g++ -ErrorAction SilentlyContinue)) {
 }
 
 # Cada prueba se compila junto con el modulo de dispensador/ que prueba.
+# prueba_fsm usa los modulos reales de logica (fsm, pedido, saldo); el hardware
+# (lcd, teclado, monedas, reles, tarjeta) esta simulado dentro de prueba_fsm.cpp.
 $pruebas = @(
-    @{ Nombre = "prueba_pedido"; Modulo = "pedido" },
-    @{ Nombre = "prueba_saldo";  Modulo = "saldo"  }
+    @{ Nombre = "prueba_pedido"; Modulos = @("pedido") },
+    @{ Nombre = "prueba_saldo";  Modulos = @("saldo") },
+    @{ Nombre = "prueba_fsm";    Modulos = @("fsm", "pedido", "saldo") }
 )
 
 $fallas = 0
 foreach ($p in $pruebas) {
-    $fuente = "$($p.Nombre).cpp"
-    $modulo = "../dispensador/$($p.Modulo).cpp"
-    $exe    = "$($p.Nombre).exe"
+    $fuente  = "$($p.Nombre).cpp"
+    $modulos = @()
+    foreach ($m in $p.Modulos) {
+        $modulos += "../dispensador/$m.cpp"
+    }
+    $exe = "$($p.Nombre).exe"
 
     Write-Host ""
-    Write-Host "### g++ $fuente $modulo"
-    & g++ -std=c++17 -Wall -Wextra -I../dispensador $fuente $modulo -o $exe
+    Write-Host "### g++ $fuente $($modulos -join ' ')"
+    & g++ -std=c++17 -Wall -Wextra -I../dispensador $fuente $modulos -o $exe
     if ($LASTEXITCODE -ne 0) {
         Write-Host "NO COMPILO: $fuente"
         $fallas++

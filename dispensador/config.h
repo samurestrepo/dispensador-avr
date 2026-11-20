@@ -71,6 +71,7 @@
 #define TIEMPO_MENSAJE_MS        2000   // mensajes temporales (devuelta, saldo insuf., gracias)
 #define TIEMPO_ALTERNAR_MS       2000   // CONFIRMAR alterna sus dos pantallas
 #define TIEMPO_TARJETA_MS        20000  // D14
+#define TIEMPO_CONSULTA_MS       3000   // D16: cuánto se muestra "Saldo $X" en la consulta
 
 // ------------------------- Tarjeta y recarga -------------------------
 #define CLAVE_ADMIN            "1234"   // D9

@@ -52,6 +52,25 @@ bool tarjeta_presente(void) {
   return lector.PICC_ReadCardSerial();
 }
 
+// Para VERIFICAR_TARJETA (D8). Tras un fallo, la tarjeta pudo quedar en el campo
+// dormida (HALT, por tarjeta_terminar()). PICC_IsNewCardPresent() envía REQA, al
+// que una tarjeta en HALT NO responde; PICC_WakeupA() envía WUPA (0x52), que según
+// MFRC522.h despierta tarjetas en IDLE y en HALT. Así se vuelve a leer la misma
+// tarjeta sin pedir que la retiren. Se acepta STATUS_COLLISION igual que
+// PICC_IsNewCardPresent() (verificado en MFRC522.cpp 1.4.12). Esa función además
+// reescribe TxModeReg, RxModeReg y ModWidthReg del RC522 antes del REQA; aquí no
+// hace falta porque en MFRC522.cpp solo PCD_Init y ella los escriben, siempre
+// con los mismos valores.
+bool tarjeta_despertar(void) {
+  byte atqa[2];                    // respuesta de la tarjeta a WUPA (2 bytes)
+  byte tam = sizeof(atqa);
+  MFRC522::StatusCode estado = lector.PICC_WakeupA(atqa, &tam);
+  if (estado != MFRC522::STATUS_OK && estado != MFRC522::STATUS_COLLISION) {
+    return false;
+  }
+  return lector.PICC_ReadCardSerial();
+}
+
 // D6: solo se acepta MIFARE Classic 1K. El tipo se deduce del byte SAK de la selección.
 static bool es_mifare_1k(void) {
   return MFRC522::PICC_GetType(lector.uid.sak) == MFRC522::PICC_TYPE_MIFARE_1K;

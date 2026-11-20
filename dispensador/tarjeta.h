@@ -32,6 +32,7 @@ typedef enum {
 
 void tarjeta_iniciar(void);              // SPI y RC522; va en setup()
 bool tarjeta_presente(void);             // true si hay una tarjeta NUEVA y se leyó su UID
+bool tarjeta_despertar(void);            // igual, pero también encuentra una tarjeta dormida (HALT); solo D8
 ResultadoTarjeta tarjeta_leer_saldo(uint32_t *saldo);        // *saldo = 0 si no es TARJETA_OK
 ResultadoTarjeta tarjeta_escribir_saldo(uint32_t saldo);
 void tarjeta_terminar(void);             // PICC_HaltA() + PCD_StopCrypto1()
