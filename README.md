@@ -13,12 +13,15 @@ Proyecto final de **Microprocesadores (60G8F)**, Ingeniería de Sistemas y Compu
 
 ## Estructura
 ```
+MANUAL_TECNICO.md  documentación completa del sistema tal como está implementado
+CLAUDE.md        reglas de programación del repositorio
 diseño/          requisitos, decisiones, pines, máquina de estados, arquitectura y pruebas
 dispensador/     el sketch (lo único que se abre en el Arduino IDE)
-pruebas_pc/      pruebas de la lógica pura con g++ (sin hardware)
-proteus/         simulación
+pruebas_pc/      pruebas en PC con g++: pedido, saldo y máquina de estados (sin hardware)
+referencia/      código anterior probado en el entrenador (origen del LCD y del teclado)
+proteus/         simulación (pendiente)
 ```
-El detalle está en [`diseño/00_indice.md`](diseño/00_indice.md).
+**Documentación completa (arquitectura, máquina de estados, trazabilidad, cómo modificar, guion de prueba): [`MANUAL_TECNICO.md`](MANUAL_TECNICO.md).** El diseño original está en [`diseño/00_indice.md`](diseño/00_indice.md).
 
 ## Requisitos
 | Herramienta | Versión probada |

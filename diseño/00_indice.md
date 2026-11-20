@@ -3,6 +3,8 @@ Versión 1 · 20-nov-2026 · Base para el prompt de Claude Code.
 
 Fuentes: `Proyecto 2026_II.docx.md`, respuestas de la profe (`claude/preguntas_proyecto_final.md`), datasheet MFRC522 (NXP rev. 3.4).
 
+> **Implementación:** el sistema tal como quedó construido (con las precisiones hechas al implementar) está documentado en [`../MANUAL_TECNICO.md`](../MANUAL_TECNICO.md). Si este diseño y el manual difieren, manda el manual (y por encima de ambos, el código).
+
 **Convención:** **[SUP]** = supuesto o decisión nuestra; hay que poder sustentarla.
 
 | Archivo | Contenido |

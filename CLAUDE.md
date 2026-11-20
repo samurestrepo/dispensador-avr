@@ -62,6 +62,9 @@ En `config.h`:
 3. Pruebas de PC (cuando existan): compilar y correr con g++ las pruebas de `pruebas_pc/`. Si g++ no está en el PATH, dilo; no lo instales tú.
 4. Nunca digas que algo "funciona en la placa": solo puedes afirmar que **compila** y que **las pruebas de PC pasan**. El hardware lo prueba Samuel.
 
+## Documentación
+- `MANUAL_TECNICO.md` describe el sistema **tal como está implementado** y es la referencia para auditores y para quien modifique el código. **Todo cambio de comportamiento, interfaz, pines, tiempos, memoria o pruebas debe reflejarse en el manual en el mismo commit** (y en `prueba_fsm.cpp` si cambia algo de la máquina de estados).
+
 ## Git
 - Un commit por fase terminada, con mensaje en español que diga qué se hizo.
 - **No hagas push**: Samuel revisa y hace push él mismo.

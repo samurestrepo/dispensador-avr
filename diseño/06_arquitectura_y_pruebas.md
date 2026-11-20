@@ -3,7 +3,7 @@
 ## Módulos (sketch de Arduino IDE con varias pestañas)
 ```
 dispensador/
-├── dispensador.ino     setup(): init de todo · loop(): fsm_tick()
+├── dispensador.ino     setup(): init de todo · loop(): fsm_tick(millis())  (la hora entra como parámetro para probar la FSM en el PC)
 ├── config.h            pines, precios, tiempos, clave, valores de las monedas, nivel activo
 ├── lcd.h / lcd.cpp     REGISTROS: lcd_iniciar, instruc, escrib, texto, pulsoE (de la referencia) + lcd_ir(fila,col), lcd_dinero, lcd_pantalla(l1,l2)
 ├── teclado.h / .cpp    REGISTROS: teclado_iniciar, teclado_escanear, teclado_nueva (de la referencia) + teclado_leer() → char o 0 (no bloqueante, antirrebote 20 ms con millis)
