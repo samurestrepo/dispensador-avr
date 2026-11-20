@@ -17,3 +17,4 @@
 | D13 | `*` en pago con monedas = cancelar y **devolver lo ingresado** (se muestra en el LCD) | El cliente nunca pierde dinero. |
 | D14 | Tarjeta sin acercar en **20 s** → vuelve al menú anterior | Evita que la máquina quede bloqueada. |
 | D15 | Nivel activo de los switches definido con una constante (`MONEDA_ACTIVA_EN_ALTO`) **[SUP]** | No sabemos si el switch del entrenador da 1 o 0 cuando está arriba; se confirma con `prueba_monedas`. |
+| D16 | **Consulta de saldo:** tecla **C** desde INICIO → acercar la tarjeta → `Saldo $X` (3 s) → INICIO. **Solo lectura**: nunca escribe la tarjeta | El cliente sabe cuánto tiene antes de pedir; sirve para mostrar que un cobro o una recarga quedaron en la tarjeta. Al no escribir, no hay riesgo para el saldo. |

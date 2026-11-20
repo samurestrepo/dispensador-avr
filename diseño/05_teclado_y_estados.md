@@ -7,6 +7,7 @@
  7  8  9  C        # = confirmar / aceptar
  *  0  #  D        * = volver / cancelar todo
                    A = pagar con monedas   B = pagar con tarjeta
+                   C = consultar saldo (desde INICIO, D16)
                    D = modo recarga (desde INICIO)
                    0–9 = dígitos (clave y monto de recarga)
 ```
@@ -22,11 +23,12 @@
     │ clave mala            │ *                 │ ok / error            ▼                              ▼
     └──► INICIO ◄───────────┴───────────────────┘                  METODO_PAGO                    GRACIAS ──► INICIO
 ```
+Además, desde INICIO: `C ─► CONSULTA_SALDO ─(3 s · * · 20 s)─► INICIO` (D16, solo lectura).
 
 ## Tabla de estados
 | Estado | LCD (línea 1 / línea 2) | Entradas → acción |
 |---|---|---|
-| INICIO | `Dispensador` / `1:Agua 2:Gaseosa` | 1/2 → +1 y SELECCION · D → RECARGA_CLAVE |
+| INICIO | `Dispensador` / `1:Agua 2:Gaseosa` | 1/2 → +1 y SELECCION · C → CONSULTA_SALDO · D → RECARGA_CLAVE |
 | SELECCION | `Ag:2 Gs:1` / `Total $1700` | 1/2 = +1 (máx. 9) · 4/5 = −1 · # (total > 0) → CONFIRMAR · * → borrar todo → INICIO |
 | CONFIRMAR | Alterna cada 2 s: `Ag 2x500=$1000` / `Gs 1x700=$ 700` ↔ `Total $1700` / `#:Si *:Atras` | # → METODO_PAGO · 4/5 = −1 (si queda en 0 → INICIO) · * → SELECCION |
 | METODO_PAGO | `A:Monedas` / `B:Tarjeta *:Atr` | A → PAGO_MONEDAS (foto de switches) · B → PAGO_TARJETA · * → CONFIRMAR |
@@ -37,6 +39,7 @@
 | RECARGA_CLAVE | `Clave admin:` / `****` | 4 dígitos + # → bien: RECARGA_MONTO · mal: `Clave errada` → INICIO · * → INICIO |
 | RECARGA_MONTO | `Monto recarga:` / `$5000` | 0–9 (máx. 6) · * borra un dígito (vacío → INICIO) · # (> 0 y múltiplo de 100) → RECARGA_TARJETA |
 | RECARGA_TARJETA | `Acerque tarjeta` / `Recarga $5000` | Saldo válido → saldo + monto · en blanco → `Tarjeta nueva`, saldo = monto · tope $999.900 · escribir, verificar → `Saldo $X` → INICIO · * o 20 s → INICIO |
+| CONSULTA_SALDO | `Acerque tarjeta` / `Consulta saldo` | Válida → `Saldo $X` (3 s) → INICIO · en blanco → `Saldo $0` (3 s) → INICIO · no válida → `Tarjeta no valida` (2 s) → INICIO · * o 20 s → INICIO. **Solo lectura (D16).** |
 
 ## Regla de las monedas (R7)
 ```
