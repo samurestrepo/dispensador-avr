@@ -1,0 +1,22 @@
+# Compilación de Arduino (se regenera)
+build/
+*.hex
+*.elf
+*.eep
+*.bin
+
+# Pruebas en PC
+*.exe
+*.o
+*.out
+
+# Respaldos de Proteus
+*.pdsbak
+
+# Documentos con derechos de autor (se citan, no se suben)
+*.pdf
+
+# Sistema y editores
+.vscode/
+Thumbs.db
+desktop.ini
