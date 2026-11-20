@@ -29,7 +29,7 @@
 //   Moneda $500 ...... PG2 (39)          entrada
 //   LED/relé agua .... PC2 (35)          salida      -> reles.cpp
 //   LED/relé gaseosa . PC3 (34)          salida
-//   RC522 SS/SCK/MOSI/MISO = PB0/PB1/PB2/PB3 (53/52/51/50), RST = PE3 (5) -> tarjeta.cpp (fase 3)
+//   RC522 SS/SCK/MOSI/MISO = PB0/PB1/PB2/PB3 (53/52/51/50), RST = PE3 (5) -> tarjeta.cpp
 // PORTC es compartido (LCD en PC0–PC1, LEDs en PC2–PC3): solo |= y &= ~.
 
 // Máscaras de los pines que manejan los módulos nuevos.
@@ -42,6 +42,11 @@
 #define RELE_AGUA_MASCARA     0b00000100  // PC2
 #define RELE_GASEOSA_MASCARA  0b00001000  // PC3
 #define RELES_MASCARA         0b00001100  // PC2–PC3
+
+// RC522: la librería MFRC522 recibe números de pin de Arduino, no máscaras.
+// SCK, MOSI y MISO son los pines fijos del SPI por hardware (52, 51, 50): no se configuran.
+#define TARJETA_PIN_SS    53   // PB0, SDA/SS del RC522
+#define TARJETA_PIN_RST   5    // PE3, RST del RC522
 
 // ------------------------- Productos -------------------------
 #define PRODUCTO_AGUA      0

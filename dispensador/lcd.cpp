@@ -72,6 +72,20 @@ void lcd_dinero(uint32_t valor) {
   }
 }
 
+// Escribe un byte como dos cifras hexadecimales (para el UID de la tarjeta).
+// valor / 16 es la cifra alta y valor % 16 la baja: 0xA4 -> 10 y 4 -> "A4".
+static char cifra_hex(uint8_t cifra) {
+  if (cifra < 10) {
+    return '0' + cifra;
+  }
+  return 'A' + (cifra - 10);
+}
+
+void lcd_hex(uint8_t valor) {
+  escrib(cifra_hex(valor / 16));
+  escrib(cifra_hex(valor % 16));
+}
+
 // Escribe una línea completa: el texto (máx. 16 caracteres) y espacios hasta la columna 16.
 // Así se borra lo que hubiera antes sin usar instruc(0x01), que hace parpadear el LCD.
 static void lcd_linea(const char t[]) {

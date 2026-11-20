@@ -22,7 +22,7 @@ void prueba_monedas_ciclo(void);
 void prueba_reles_iniciar(void);
 void prueba_reles_ciclo(void);
 
-// MODO 5: pendiente (fase 3). Por ahora solo un mensaje.
+// MODO 5: tipo y UID de la tarjeta y lectura del saldo del bloque 4. SOLO LECTURA.
 void prueba_rfid_iniciar(void);
 void prueba_rfid_ciclo(void);
 

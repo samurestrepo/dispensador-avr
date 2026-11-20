@@ -8,6 +8,7 @@
 #include "teclado.h"
 #include "monedas.h"
 #include "reles.h"
+#include "tarjeta.h"
 #include "pruebas_hw.h"
 
 // ======================= MODO 1: LCD =======================
@@ -116,12 +117,52 @@ void prueba_reles_ciclo(void) {
   }
 }
 
-// ======================= MODO 5: RFID (fase 3) =======================
+// ======================= MODO 5: RFID (SOLO LECTURA) =======================
+// Línea 1: tipo y UID en hexadecimal, p. ej. "1K A1B2C3D4" (D6: debe decir 1K).
+//          Un UID de 7 bytes no cabe entero: el LCD muestra hasta la columna 16.
+// Línea 2: resultado de leer el bloque de saldo.
+// Este modo NUNCA llama a tarjeta_escribir_saldo().
+// La misma tarjeta no se vuelve a leer hasta retirarla y acercarla (queda en HALT).
 void prueba_rfid_iniciar(void) {
   lcd_iniciar();
-  lcd_pantalla("RFID: fase 3", "");
+  tarjeta_iniciar();
+  lcd_pantalla("Prueba RFID", "Acerque tarjeta");
 }
 
 void prueba_rfid_ciclo(void) {
-  // Pendiente: se escribe en la fase 3 junto con tarjeta.cpp.
+  if (!tarjeta_presente()) {
+    return;
+  }
+
+  // Línea 1: tipo y UID.
+  uint8_t uid[10];
+  uint8_t tam = tarjeta_uid(uid);
+  lcd_pantalla("", "");                 // limpia las dos líneas sin parpadeo
+  lcd_ir(0, 0);
+  texto(tarjeta_tipo_texto());
+  escrib(' ');
+  for (uint8_t i = 0; i < tam; i++) {
+    lcd_hex(uid[i]);
+  }
+
+  // Línea 2: saldo o motivo.
+  uint32_t saldo = 0;
+  ResultadoTarjeta r = tarjeta_leer_saldo(&saldo);
+  lcd_ir(1, 0);
+  if (r == TARJETA_OK) {
+    texto("Saldo ");
+    lcd_dinero(saldo);
+  } else if (r == TARJETA_EN_BLANCO) {
+    texto("En blanco");
+  } else if (r == TARJETA_NO_VALIDA) {
+    texto("No valida");
+  } else if (r == TARJETA_NO_SOPORTADA) {
+    texto("No soportada");
+  } else if (r == TARJETA_ERROR_AUTENTICACION) {
+    texto("Error clave A");
+  } else {
+    texto("Error lectura");
+  }
+
+  tarjeta_terminar();
 }

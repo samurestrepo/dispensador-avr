@@ -19,6 +19,7 @@ void lcd_iniciar(void);               // 8 bits, 2 líneas, sin cursor, borra
 // --- Nuevas ---
 void lcd_ir(uint8_t fila, uint8_t col);              // fila 0–1, columna 0–15
 void lcd_dinero(uint32_t valor);                     // escribe "$1700" desde la posición actual
+void lcd_hex(uint8_t valor);                         // escribe un byte en hexadecimal: 0xA4 -> "A4"
 void lcd_pantalla(const char linea1[], const char linea2[]); // las dos líneas, rellenas con espacios
 
 #endif
