@@ -7,6 +7,15 @@ Proyecto final de Microprocesadores (Universidad de Caldas): dispensador de bebi
 
 El autor (Samuel) debe sustentar el proyecto **a papel e individualmente** y presentar un parcial de **C por registros a papel**. El código es también su material de estudio: claridad por encima de ingenio.
 
+## Por dónde empezar (para cualquier Claude o compañero nuevo en el repo)
+Leer en este orden:
+1. `README.md`: qué hace, requisitos (librería **MFRC522 1.4.12**) y cómo compilar.
+2. `MANUAL_TECNICO.md`: el sistema tal como está implementado (decisiones D1–D17, máquina de estados, pines, guion de prueba). Es la referencia principal.
+3. `simulacion/README.md`: cómo correr la simulación en Proteus 8.13 desde el Arduino IDE, y la **tabla de teclas**: el teclado de Proteus es de calculadora y está cableado igual que el entrenador, así que **los números no coinciden** (agua = 7, gaseosa = 8, `#` = `=`, `*` = ON/C).
+4. `diseño/`: el diseño original (D17 está solo en el manual).
+
+Estado (25-nov-2026): compila, las pruebas de PC pasan y el flujo completo funciona en Proteus (pedido, confirmar, monedas con devolución, tarjeta, recarga con `1234`, consulta). Falta probarlo en el hardware.
+
 ## Idioma
 Comentarios, identificadores, mensajes de commit y textos del LCD en **español** (sin tildes ni ñ en el LCD: el HD44780 no las tiene).
 
@@ -69,7 +78,7 @@ En `config.h`:
 - Un commit por fase terminada, con mensaje en español que diga qué se hizo.
 - **No hagas push**: Samuel revisa y hace push él mismo.
 - **Sin atribución a Claude en los commits:** nada de `Co-Authored-By: Claude`, ni "Generated with Claude Code", ni ninguna mención a Claude o Anthropic en mensajes de commit, código o README. El autor es Samuel (lo toma de `git config`).
-- No subas `build/`, `.hex` ni ejecutables (ya están en `.gitignore`).
+- No subas `build/`, `.hex` ni ejecutables (ya están en `.gitignore`). Única excepción: `simulacion/emulador_rc522/emulador_rc522.hex`, que va en el repo para simular sin avr-gcc.
 
 ## Entorno
 Windows + PowerShell. Herramientas instaladas: git 2.45, arduino-cli 1.6.0, core arduino:avr 1.8.8, MFRC522 1.4.12, g++ (WinLibs; verificar que esté en el PATH).

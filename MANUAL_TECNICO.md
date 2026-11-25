@@ -439,7 +439,7 @@ Después de **cualquier** cambio: compilar los modos 0 a 5 (§4.2–4.3) y corre
 - **Seguridad del saldo:** el saldo está en claro y protegido solo con la clave de fábrica. Cualquiera con un lector y esa clave podría reescribirlo. El complemento detecta errores, no fraude. Una versión real cambiaría las claves del sector y firmaría el saldo.
 - **Clave de administrador en el código** (`CLAVE_ADMIN` "1234").
 - **Una tarjeta con el bloque dañado no se puede recuperar** desde el dispensador: la recarga la rechaza como no válida en lugar de reformatearla, para no permitir que una tarjeta cualquiera se "formatee" con saldo.
-- **El RFID no se puede simular en Proteus** (no hay modelo del RC522, hasta donde se sabe); se prueba en el montaje con el MODO 5.
+- **El RC522 no tiene modelo en Proteus:** en la simulación lo reemplaza un ATmega328P que emula sus registros por SPI (`simulacion/`, ver su README). Eso prueba el programa del Mega, pero no la tarjeta real (tipo 1K, clave A) ni la alimentación a 3,3 V: eso se confirma en el montaje con el MODO 5.
 - **No se puede cancelar durante el dispensado.**
 
 ### 12.3 Riesgos del montaje
