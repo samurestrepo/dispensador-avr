@@ -19,7 +19,7 @@ diseño/          requisitos, decisiones, pines, máquina de estados, arquitectu
 dispensador/     el sketch (lo único que se abre en el Arduino IDE)
 pruebas_pc/      pruebas en PC con g++: pedido, saldo y máquina de estados (sin hardware)
 referencia/      código anterior probado en el entrenador (origen del LCD y del teclado)
-proteus/         simulación (pendiente)
+simulacion/      simulación en Proteus 8.13 (ver simulacion/README.md)
 ```
 **Documentación completa (arquitectura, máquina de estados, trazabilidad, cómo modificar, guion de prueba): [`MANUAL_TECNICO.md`](MANUAL_TECNICO.md).** El diseño original está en [`diseño/00_indice.md`](diseño/00_indice.md).
 
@@ -31,9 +31,10 @@ proteus/         simulación (pendiente)
 | Librería `MFRC522` (GithubCommunity) | 1.4.12 |
 | g++ (solo para `pruebas_pc/`) | WinLibs GCC |
 
+**Sin la librería MFRC522 no compila.** En el Arduino IDE: *Herramientas → Administrar bibliotecas* → `MFRC522` → versión **1.4.12**. Por línea de comandos:
 ```
 arduino-cli core install arduino:avr
-arduino-cli lib install MFRC522
+arduino-cli lib install MFRC522@1.4.12
 ```
 
 ## Compilar y generar el .hex
@@ -44,6 +45,9 @@ arduino-cli lib install MFRC522
 arduino-cli compile --fqbn arduino:avr:mega --export-binaries dispensador
 ```
 El .hex queda en `dispensador/build/arduino.avr.mega/`. Para Proteus se usa `dispensador.ino.hex` (no el `with_bootloader`).
+
+## Simulación
+Pasos completos (librería, exportar el .hex, abrir el `.pdsprj`, equivalencia de teclas): [`simulacion/README.md`](simulacion/README.md).
 
 ## Modos de prueba
 En `dispensador/config.h`, la constante `MODO` elige qué se compila: el programa completo o una prueba de cada periférico (LCD, teclado, monedas, LEDs, RFID). Se recompila después de cambiarla.

@@ -12,6 +12,7 @@ build/
 
 # Respaldos de Proteus
 *.pdsbak
+Project Backups/
 
 # Documentos con derechos de autor (se citan, no se suben)
 *.pdf
@@ -20,3 +21,6 @@ build/
 .vscode/
 Thumbs.db
 desktop.ini
+
+# Excepción: el firmware del emulador va en el repo (así no hace falta avr-gcc para simular)
+!simulacion/emulador_rc522/emulador_rc522.hex
