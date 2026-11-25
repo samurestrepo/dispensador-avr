@@ -175,9 +175,9 @@ Compila cada prueba con `g++ -std=c++17 -Wall -Wextra` junto con los módulos re
 - Cada registro lo escribe **un solo** módulo. `fsm` no escribe registros.
 - `pedido` y `saldo` solo incluyen `<stdint.h>`, `<stdbool.h>` y `config.h`: compilan en el PC.
 - `fsm` recibe la hora como parámetro (`fsm_tick(millis())`): no depende de `Arduino.h` y se prueba en el PC con módulos simulados.
-- Sin `delay()`. Las únicas esperas activas son las del protocolo del LCD (`_delay_us`/`_delay_ms` dentro de `lcd.cpp`), el `_delay_us(10)` del barrido del teclado y los tiempos internos de la librería MFRC522 (§9.2).
+- Sin `delay()`. Las únicas esperas activas son las del protocolo del LCD (`_delay_us`/`_delay_ms` dentro de `lcd.cpp`), el `_delay_us(10)` del barrido del teclado y los tiempos internos de la librería MFRC522 (§9.2). La ISR del teclado no espera.
 - Máscaras en notación `0b...` (convención de la profesora). Los únicos desplazamientos (`>>`, `<<`) están en `saldo.cpp`, para partir un `uint32_t` en bytes; no son máscaras de registro.
-- No se usa `ISR(TIMER0_OVF_vect)`: el núcleo de Arduino la usa para `millis()`.
+- No se usa `ISR(TIMER0_OVF_vect)`: el núcleo de Arduino la usa para `millis()`. La única ISR propia es `ISR(TIMER2_COMPA_vect)` del teclado (D17).
 
 ---
 
@@ -201,13 +201,21 @@ Compila cada prueba con `g++ -std=c++17 -Wall -Wextra` junto con los módulos re
 Registros: `DDRA = 0b11111111`, `PORTA = dato`, `DDRC |= 0b00000011`, `PORTC |= / &= ~ 0b00000001` (RS), `PORTC |= / &= ~ 0b00000010` (E).
 El LCD **no tiene tildes ni ñ**: todos los textos van sin ellas.
 
-### 6.3 `teclado` — 4x4 por registros, no bloqueante
+### 6.3 `teclado` — 4x4 por registros, leído por interrupción del Timer2 (D17)
+**D17 (25-nov, pedido de la profesora): el teclado se atiende por interrupción.** El puerto L no tiene interrupciones por pin (ni INTn ni PCINT: datasheet, Figura 1-1, p. 2), y el cableado no se cambia. Por eso la interrupción es la del **Timer2 en CTC cada 1 ms**, y en cada interrupción se revisa **una fila**.
+
 | Función | Qué hace |
 |---|---|
-| `teclado_iniciar()` | `DDRL = 0b00000000` (todo entrada), `PORTL = 0b11110000` (pull-ups en las columnas PL4–PL7) |
-| `teclado_escanear()` | Para cada fila: solo esa fila como salida en 0 (`DDRL = 0b0000000X`), espera 10 µs, lee `PINL & 0b11110000`; una columna en 0 indica la tecla. Devuelve la tecla o 0 |
-| `teclado_nueva()` | Devuelve la tecla solo en el instante en que se presiona (flanco); si no, 0 |
-| `teclado_leer()` | La que usa el programa: llama a `teclado_nueva()` como máximo cada 20 ms (antirrebote por tiempo, sin detener el programa) |
+| `teclado_iniciar()` | `DDRL = 0b00000000`, `PORTL = 0b11110000` (pull-ups en las columnas PL4–PL7), `DDRL = 0b00000001` (fila A activa). Timer2: `TCCR2A = 0b00000010` (CTC), `TCCR2B = 0b00000100` (/64), `OCR2A = 249`, `TIFR2 = 0b00000010` (borra OCF2A), `TIMSK2 = 0b00000010` (OCIE2A) |
+| `ISR(TIMER2_COMPA_vect)` | Cada 1 ms: lee `PINL & 0b11110000` de la fila que activó la interrupción anterior (ya asentada: no hace falta esperar) y activa la siguiente (`DDRL = fila_activa[fila]`). Cada 4 ms completa una pasada; la tecla se acepta cuando **5 pasadas seguidas** (20 ms) dan lo mismo. Al aceptar una tecla nueva la deja en `tecla_lista` (`volatile`). Corta y sin llamadas |
+| `teclado_leer()` | La que usa el programa: devuelve `tecla_lista` y la borra, con las interrupciones apagadas un instante (`SREG` guardado → `cli()` → restaurar `SREG`) para no perder una tecla |
+| `teclado_escanear()`, `teclado_nueva()` | De la referencia, probadas en el entrenador; se conservan pero el programa ya no las usa |
+
+**Cálculo del Timer2:** t = N · (OCR2A + 1) / f_clk = 64 · 250 / 16 MHz = **1 ms**. En el Timer2, CS22:20 = `100` es /64 (en el Timer0, `100` sería /256: las tablas son distintas). Pasada completa = 4 filas × 1 ms = 4 ms; antirrebote = 5 pasadas × 4 ms = 20 ms (`ANTIRREBOTE_TECLADO_MS / 4`).
+
+**Por qué el Timer2:** el Timer0 lo usa `millis()` (no se toca `TIMER0_OVF`); el Timer1 y los de 16 bits quedan libres. El núcleo de Arduino configura el Timer2 para PWM en los pines 9/10, que no se usan; `teclado_iniciar()` sobrescribe TCCR2A/B por completo.
+
+**Ventaja frente al sondeo:** el teclado se revisa aunque el programa esté ocupado (por ejemplo, los ~25 ms de `PICC_IsNewCardPresent()` sin tarjeta).
 
 Distribución: `1 2 3 A / 4 5 6 B / 7 8 9 C / * 0 # D`.
 
@@ -346,12 +354,12 @@ No tiene tiempo límite: si el cobro ya quedó, volver solo al menú haría perd
 ## 9. Tiempos y recursos
 
 ### 9.1 Memoria (MODO 0, compilado con arduino-cli 1.6.0)
-Flash **12 942 B de 253 952 (5 %)** · RAM **981 B de 8192 (11 %)**. La mayor parte de la RAM son los textos del LCD: en el AVR los literales de cadena se copian a RAM al arrancar. Si alguna vez faltara RAM, se pueden pasar a flash con `PROGMEM` (hoy no es necesario).
+Flash **12 942 B de 253 952 (5 %)** · RAM **981 B de 8192 (11 %)** (antes de D17; con D17, en una compilación equivalente con avr-gcc: **+ 1 B de RAM**, ~+120 B de flash — volver a medir con arduino-cli). La mayor parte de la RAM son los textos del LCD: en el AVR los literales de cadena se copian a RAM al arrancar. Si alguna vez faltara RAM, se pueden pasar a flash con `PROGMEM` (hoy no es necesario).
 
 ### 9.2 Bloqueos
 | Qué | Cuánto | Dónde | Por qué se acepta |
 |---|---|---|---|
-| `PICC_IsNewCardPresent()` sin tarjeta | ~25 ms por llamada (temporizador del RC522 programado por `PCD_Init`) | Solo en los estados que esperan tarjeta | El teclado se sigue leyendo cada ~25 ms (su antirrebote es de 20 ms); las monedas no se leen en esos estados (D5) |
+| `PICC_IsNewCardPresent()` sin tarjeta | ~25 ms por llamada (temporizador del RC522 programado por `PCD_Init`) | Solo en los estados que esperan tarjeta | El teclado no se afecta: lo lee la interrupción del Timer2 (D17); la tecla espera en `tecla_lista` hasta la siguiente vuelta. Las monedas no se leen en esos estados (D5) |
 | Intercambio con tarjeta presente | Pocos ms (SPI a 4 MHz); una vez por operación | Lectura/escritura | — |
 | Peor caso si el RC522 no contesta | 36 ms (comunicación) / 89 ms (CRC) | Librería | — |
 | `PCD_Init()` | ≥ 50 ms | Solo en `setup()` | — |
@@ -360,7 +368,7 @@ Flash **12 942 B de 253 952 (5 %)** · RAM **981 B de 8192 (11 %)**. La mayor pa
 Los tiempos de la librería se tomaron de su código fuente (MFRC522 1.4.12); **no se han medido** en la placa.
 
 ### 9.3 Tiempos del sistema (todos en `config.h`)
-Antirrebote de monedas 30 ms · antirrebote del teclado 20 ms · LED 2 s encendido / 0,5 s apagado por unidad · mensajes 2 s · alternancia de CONFIRMAR 2 s · espera de tarjeta 20 s · consulta de saldo 3 s.
+Antirrebote de monedas 30 ms · interrupción del teclado cada 1 ms, antirrebote 20 ms (5 pasadas de 4 ms) · LED 2 s encendido / 0,5 s apagado por unidad · mensajes 2 s · alternancia de CONFIRMAR 2 s · espera de tarjeta 20 s · consulta de saldo 3 s.
 
 ---
 
@@ -378,8 +386,8 @@ Antirrebote de monedas 30 ms · antirrebote del teclado 20 ms · LED 2 s encendi
 | R8 Tarjeta; saldo en la tarjeta; rechazo | D6, D7, D8, D14 | `tarjeta.cpp`, `saldo.cpp`, PAGO_TARJETA, VERIFICAR_TARJETA | `prueba_saldo`, `prueba_fsm` · MODO 5 |
 | R9 Modo recarga | D9, D10 | RECARGA_* , `saldo_recargar` | `prueba_saldo`, `prueba_fsm` |
 | R10 Un relé (LED) por producto | D12 | `reles.cpp`, DISPENSAR | `prueba_fsm` · MODO 4 |
-| R11 Teclado para elegir/confirmar/cancelar | — | `teclado.cpp`, `fsm.cpp` | `prueba_fsm` · MODO 2 |
-| R12 Detalles propios, sustentados | D1–D16 | todo | — |
+| R11 Teclado para elegir/confirmar/cancelar (por interrupción) | D17 | `teclado.cpp` (ISR del Timer2), `fsm.cpp` | `prueba_fsm` · MODO 2 |
+| R12 Detalles propios, sustentados | D1–D17 | todo | — |
 | (extra) Consulta de saldo | D16 | CONSULTA_SALDO | `prueba_fsm` |
 
 ---
@@ -498,6 +506,7 @@ Los pasos 32–35 dependen de la mano y pueden no salir; los tres casos de VERIF
 | `9bce885` | Fase 3: tarjeta RFID y modo de prueba |
 | `cfc507a` | Diseño: D8 verificación tras escritura dudosa |
 | `dbe2781` | Fase 4: máquina de estados completa |
+| (pendiente) | D17: teclado por interrupción del Timer2 (pedido de la profesora, 25-nov) |
 
 ### 14.2 Convenciones
 Español en código, comentarios y commits · textos del LCD sin tildes ni ñ · máscaras `0b...` · cada escritura de registro comentada (registro, bits, para qué) · un commit por cambio coherente.

@@ -65,7 +65,7 @@
 
 // ------------------------- Tiempos (ms) -------------------------
 #define ANTIRREBOTE_MONEDA_MS    30     // D3
-#define ANTIRREBOTE_TECLADO_MS   20     // el mismo de la referencia (_delay_ms(20) del loop)
+#define ANTIRREBOTE_TECLADO_MS   20     // D17: 5 pasadas iguales de 4 ms (ISR del Timer2); múltiplo de 4
 #define TIEMPO_LED_ON_MS         2000   // D12
 #define TIEMPO_LED_OFF_MS        500    // D12
 #define TIEMPO_MENSAJE_MS        2000   // mensajes temporales (devuelta, saldo insuf., gracias)
